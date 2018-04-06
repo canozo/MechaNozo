@@ -1,4 +1,5 @@
 from discord.ext import commands
+from typing import Dict
 import chess
 
 
@@ -7,10 +8,10 @@ class Game:
 
     def __init__(self, bot):
         self.bot = bot
-        self.games = {}
+        self.games = {}  # type: Dict[int, chess.Match]
         self.last_game_id = 0
 
-    async def verify_game(self, game_id: str, user_id: str, server_id: str) -> bool:
+    async def verify_game(self, game_id: int, user_id: str, server_id: str) -> bool:
         if game_id not in self.games:
             await self.bot.say(f'No games with id {game_id} found. '
                                f'Say `{self.bot.command_prefix}remember` to see your games!')
@@ -22,6 +23,7 @@ class Game:
         elif user_id not in (self.games[game_id].white, self.games[game_id].black):
             await self.bot.say('You don\'t belong to that game. '
                                f'Say `{self.bot.command_prefix}remember` to see your games!')
+            return False
         else:
             return True
 
@@ -40,13 +42,13 @@ class Game:
         if black not in sv_ranks:
             sv_ranks[black] = 1000.0
 
-        self.games[str(self.last_game_id)] = chess.Match(white, black, str(self.last_game_id), sv_id)
+        self.games[self.last_game_id] = chess.Match(white, black, self.last_game_id, sv_id)
         print(f'New match starting on server {sv_id}:')
         print(f'id {self.last_game_id}, {usernames[white]}(id {white})(white) vs {usernames[black]}(id {black})(black)')
         print('__________________')
 
     @commands.command(pass_context=True, description='Show the chessboard flipped to your side.')
-    async def board(self, ctx, game_id: str) -> None:
+    async def board(self, ctx, game_id: int):
         """Show the board."""
         user_id = ctx.message.author.id
         sv_id = ctx.message.server.id
@@ -60,7 +62,7 @@ class Game:
                 await self.bot.upload(board_flipped)
 
     @commands.command(pass_context=True, description='Forfeit an ongoing game you\'re part of.')
-    async def surrender(self, ctx, game_id: str) -> None:
+    async def surrender(self, ctx, game_id: int):
         """Forfeit."""
         user_id = ctx.message.author.id
         sv_id = ctx.message.server.id
@@ -73,7 +75,7 @@ class Game:
             self.games.pop(game_id)
 
     @commands.command(pass_context=True, description='Execute a move, moves are formatted like such: d2 d4, b8 c6, etc')
-    async def move(self, ctx, game_id: str, fr: str, to: str, promotion: str=None) -> None:
+    async def move(self, ctx, game_id: int, fr: str, to: str, promotion: str=None):
         """Make a move."""
         user_id = ctx.message.author.id
         sv_id = ctx.message.server.id
@@ -81,6 +83,7 @@ class Game:
         if await self.verify_game(game_id, user_id, sv_id):
             match = self.games[game_id]
             error = match.move(user_id, fr, to, promotion)
+
             if not error:
                 board_normal, board_flipped = match.img_path()
                 if match.white_turn:

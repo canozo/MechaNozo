@@ -1,4 +1,5 @@
 from discord.ext import commands
+from typing import Dict
 import discord
 import json
 import math
@@ -11,14 +12,14 @@ class Server:
 
     def __init__(self, bot):
         self.bot = bot
-        self.challengers = {}
-        self.usernames = {}
+        self.challengers = {}  # type: Dict[str, Dict[str,str]]
+        self.usernames = {}  # type: Dict[str, str]
 
         try:
             with open('ranks.json', 'r') as ranks_file:
                 self.ranks = json.loads(ranks_file.read())
         except FileNotFoundError:
-            self.ranks = {}
+            self.ranks = {}  # type: Dict[str, Dict[str, float]]
 
     def update_ranks(self, server: str, stalemate: bool, winner: str, loser: str) -> None:
         sv_ranks = self.ranks[server]
@@ -48,7 +49,7 @@ class Server:
         with open('ranks.json', 'w') as file:
             json.dump(self.ranks, file)
 
-    async def timeout(self, challengers, clr, cld) -> None:
+    async def timeout(self, challengers: Dict[str, str], clr: str, cld: str) -> None:
         challengers[clr] = cld
         await asyncio.sleep(60)
         if clr in challengers and challengers[clr] == cld:
@@ -56,7 +57,7 @@ class Server:
             await self.bot.say(f'Challenge by <@{clr}> timed out!')
 
     @commands.command(pass_context=True, description='Request an user to play a game, must mention the user.')
-    async def challenge(self, ctx, user: discord.Member=None) -> None:
+    async def challenge(self, ctx, user: discord.Member=None):
         """Challenge an user."""
         if user is None:
             await self.bot.say('You have to specify who you\'re fighting!')
@@ -80,7 +81,7 @@ class Server:
                 await self.timeout(sv_challengers, author_id, user.id)
 
     @commands.command(pass_context=True, description='Accept all game requests you chould have.')
-    async def accept(self, ctx) -> None:
+    async def accept(self, ctx):
         """Accept challenges."""
         user_id = ctx.message.author.id
         sv_id = ctx.message.server.id
@@ -110,11 +111,11 @@ class Server:
                     await self.bot.say(f'New match started: id `{game_cog.last_game_id}`, '
                                        f'<@{white}> (white) vs <@{black}> (black). '
                                        f'Say `{self.bot.command_prefix}help move` to learn how to move!')
-                    board_normal, _ = game_cog.games[str(game_cog.last_game_id)].img_path()
+                    board_normal, _ = game_cog.games[game_cog.last_game_id].img_path()
                     await self.bot.upload(board_normal)
 
     @commands.command(pass_context=True, description='Shows you all the games you\'re part of.')
-    async def remember(self, ctx) -> None:
+    async def remember(self, ctx):
         """Show all your games."""
         user_id = ctx.message.author.id
         msg = '```Your games:\n'
@@ -127,7 +128,7 @@ class Server:
         await self.bot.say(msg)
 
     @commands.command(pass_context=True, description='Shows the ranks in your server. Play a match to get a rank!')
-    async def rankings(self, ctx) -> None:
+    async def rankings(self, ctx):
         """Show rankings."""
         sv_id = ctx.message.server.id
 

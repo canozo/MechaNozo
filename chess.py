@@ -3,7 +3,7 @@ import board
 
 
 class Match:
-    def __init__(self, white, black, game_id, sv_id):
+    def __init__(self, white: str, black: str, game_id: int, sv_id: str):
         self.white = white
         self.black = black
         self.game_id = game_id
