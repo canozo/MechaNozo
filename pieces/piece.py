@@ -1,10 +1,18 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 
 class Piece(ABC):
+    def __init__(self, is_white: bool, has_moved: bool):
+        self.is_white = is_white
+        self.has_moved = has_moved
+        self.text = None
+        self.unicode = None
+        self.img = None
 
     @staticmethod
-    def possible_moves(movements, table, chessboard, x, y):
+    def possible_moves(movements: List[int], table: List[List[bool]],
+                       chessboard: List[List['Piece']], x: int, y: int) -> List[List[bool]]:
         for i in range(4):
             exit_loop = False
             sum_x = movements[i]

@@ -1,11 +1,11 @@
 from .piece import Piece
 from PIL import Image
+from typing import List
 
 
 class Pawn(Piece):
-    def __init__(self, is_white, has_moved=False):
-        self.is_white = is_white
-        self.has_moved = has_moved
+    def __init__(self, is_white: bool, has_moved: bool=False):
+        super(Pawn, self).__init__(is_white, has_moved)
         if self.is_white:
             self.text = 'P'
             self.unicode = '\u2659'
@@ -18,7 +18,7 @@ class Pawn(Piece):
     def __deepcopy__(self, memodict):
         return Pawn(self.is_white, self.has_moved)
 
-    def can_move(self, x, y, new_x, new_y, piece_in_path):
+    def can_move(self, x: int, y: int, new_x: int, new_y: int, piece_in_path: bool) -> bool:
         dx = abs(x-new_x)
         dy = y-new_y
 
@@ -34,7 +34,7 @@ class Pawn(Piece):
 
         return False
 
-    def controlled(self, table, chessboard, x, y):
+    def controlled(self, table: List[List[bool]], chessboard: List[List[Piece]], x: int, y: int) -> List[List[bool]]:
         if (self.is_white and y == 0) or (not self.is_white and y == 7):
             return table
 
