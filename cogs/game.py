@@ -133,7 +133,7 @@ class Game:
             elif error == 2:
                 # wrote move incorrectly
                 await ctx.send(f'`{fr} {to}` is not a valid move. '
-                               'Moves are formatted like such: d2 d4, b8 c6, etc.')
+                               'Moves are formatted like such: `d2 d4`, `b8 c6`, `a1 h8` etc.')
 
             elif error == 3:
                 # made an illegal move

@@ -24,8 +24,8 @@ class Chess:
             # not the players turn
             return 1
 
-        elif len(mv_from) != 2 and len(mv_into) != 2 and mv_from[0] not in 'abcdefgh' and mv_from[1] not in '12345678'\
-                and mv_into[0] not in 'abcdefgh' and mv_into[1] not in '12345678':
+        elif len(mv_from) != 2 or len(mv_into) != 2 or mv_from[0] not in 'abcdefgh' or mv_from[1] not in '12345678'\
+                or mv_into[0] not in 'abcdefgh' or mv_into[1] not in '12345678':
             # wrote the move incorrectly
             return 2
 
