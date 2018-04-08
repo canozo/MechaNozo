@@ -2,13 +2,12 @@ from typing import Tuple
 import board
 
 
-class Match:
-    def __init__(self, white: str, black: str, game_id: int, sv_id: str):
+class Chess:
+    def __init__(self, white: int, black: int, game_id: int, guild_id: int):
         self.white = white
         self.black = black
         self.game_id = game_id
-        self.sv_id = sv_id
-
+        self.guild_id = guild_id
         self.board = board.Board()
         self.white_turn = True
         self.gameover = False
@@ -20,17 +19,16 @@ class Match:
     def img_path(self) -> Tuple[str, str]:
         return self.board.get_images()
 
-    def move(self, player_id: str, mv_from: str, mv_into: str, promote_to: str=None) -> int:
-        if self.white_turn and not self.white == player_id:
+    def move(self, player_id: int, mv_from: str, mv_into: str, promote_to: str=None) -> int:
+        if (self.white_turn and not player_id == self.white) or (not self.white_turn and not player_id == self.black):
             # not the players turn
             return 1
-        elif not self.white_turn and not self.black == player_id:
-            # not the players turn
-            return 1
+
         elif len(mv_from) != 2 and len(mv_into) != 2 and mv_from[0] not in 'abcdefgh' and mv_from[1] not in '12345678'\
                 and mv_into[0] not in 'abcdefgh' and mv_into[1] not in '12345678':
             # wrote the move incorrectly
             return 2
+
         else:
             self.old_x = 'abcdefgh'.find(mv_from[0])
             self.old_y = '87654321'.find(mv_from[1])
@@ -41,6 +39,7 @@ class Match:
                     self.old_x, self.old_y, self.new_x, self.new_y, self.white_turn, False, promote_to):
                 # illegal move
                 return 3
+
             else:
                 # move executed
                 self.white_turn = not self.white_turn
@@ -58,12 +57,15 @@ class Match:
         # returns the current status of the game (is game over, is stalemate)
         return self.gameover, self.gameover and not self.board.check(self.white_turn)
 
-    def surrender(self, player_id: str) -> Tuple[bool, str]:
+    def surrender(self, player_id: int) -> int:
         winner = None
+
         if player_id == self.white:
             self.gameover = True
             winner = self.black
+
         elif player_id == self.black:
             self.gameover = True
             winner = self.white
-        return self.gameover, winner
+
+        return winner

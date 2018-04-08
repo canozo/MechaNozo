@@ -8,7 +8,6 @@ try:
     with open('config.json', 'r') as file:
         config = json.loads(file.read())
         prefix: str = config['prefix']
-        print_traceback: bool = config['print traceback']
         token: str = config['token']
 
 except FileNotFoundError:
@@ -21,7 +20,7 @@ except KeyError:
 
 extensions = [
     'cogs.game',
-    'cogs.server'
+    'cogs.guild'
 ]
 
 bot_description = '''chess-tan!
@@ -32,35 +31,32 @@ bot = commands.Bot(command_prefix=prefix, description=bot_description)
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} ({bot.user.id}) is up and running!')
-    if print_traceback:
-        print('print_traceback is enabled!')
-    else:
-        print('print_traceback is disabled! Change your config.json file to enable it.')
     print('__________________')
 
 
 @bot.event
-async def on_command_error(exception, context):
-    if hasattr(context.command, 'on_error'):
+async def on_command_error(ctx, exception):
+    ignore = (commands.CommandNotFound, commands.BadArgument, commands.UserInputError, commands.MissingRequiredArgument)
+    if isinstance(exception, ignore):
         return
 
-    print(f'Ignoring exception in command {context.command}', file=sys.stderr)
-    if print_traceback:
-        traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
+    print(f'Exception in command {ctx.command}', file=sys.stderr)
+    traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
     print('__________________', file=sys.stderr)
 
 
-@bot.command(pass_context=True, hidden=True)
+@bot.command(hidden=True)
 async def kill(ctx):
-    await bot.say('Bye!')
-    bot_info = await bot.application_info()
-    if ctx.message.author.id == bot_info.owner.id:
+    await ctx.send('Bye!')
+    is_owner = await ctx.bot.is_owner(ctx.author)
+
+    if is_owner:
         print('Bot is being logged out.')
         print('__________________')
         await bot.logout()
     else:
         await asyncio.sleep(5)
-        await bot.say('SIKE')
+        await ctx.send('SIKE')
 
 
 def main():
