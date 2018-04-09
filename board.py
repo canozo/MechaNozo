@@ -219,7 +219,7 @@ class Board:
         king_y = king_x = 0
         temp_chessboard = copy.deepcopy(self.chessboard)
 
-        for i, j in itertools.product(range(8), range(8)):
+        for i, j in itertools.product(range(8), repeat=2):
             if self.chessboard[i][j] is not None and isinstance(self.chessboard[i][j], King)\
                     and self.chessboard[i][j].is_white == white_turn:
                 king_x = j
@@ -229,7 +229,7 @@ class Board:
         temp_chessboard[y][x] = None
         temp_controlled = [[False for _ in range(8)] for _ in range(8)]
 
-        for i, j in itertools.product(range(8), range(8)):
+        for i, j in itertools.product(range(8), repeat=2):
             if temp_chessboard[i][j] is not None and temp_chessboard[i][j].is_white != white_turn:
                 temp_controlled = temp_chessboard[i][j].controlled(temp_controlled, temp_chessboard, j, i)
 
@@ -293,7 +293,7 @@ class Board:
     def update_controlled(self) -> None:
         self.white_controlled = [[False for _ in range(8)] for _ in range(8)]
         self.black_controlled = [[False for _ in range(8)] for _ in range(8)]
-        for i, j in itertools.product(range(8), range(8)):
+        for i, j in itertools.product(range(8), repeat=2):
             if self.chessboard[i][j] is not None and self.chessboard[i][j].is_white:
                 self.white_controlled = self.chessboard[i][j].controlled(self.white_controlled, self.chessboard, j, i)
             elif self.chessboard[i][j] is not None and not self.chessboard[i][j].is_white:
@@ -311,7 +311,7 @@ class Board:
 
     def check(self, white_turn: bool) -> bool:
         king_y = king_x = 0
-        for i, j in itertools.product(range(8), range(8)):
+        for i, j in itertools.product(range(8), repeat=2):
             if self.chessboard[i][j] and isinstance(self.chessboard[i][j], King)\
                     and self.chessboard[i][j].is_white == white_turn:
                 king_x = j
@@ -323,8 +323,8 @@ class Board:
             return self.white_controlled[king_y][king_x]
 
     def has_legal_move(self, white_turn: bool) -> bool:
-        for i, j, k, l in itertools.product(range(8), range(8), range(8), range(8)):
-            if self.gatekeeper(j, i, l, k, white_turn, True):
+        for i, j, k, l in itertools.product(range(8), repeat=4):
+            if self.gatekeeper(j, i, l, k, white_turn, True, 'queen'):
                 return True
 
         return False
@@ -337,7 +337,7 @@ class Board:
         result_normal.paste(self.board_normal_img, (0, 0))
         result_flipped.paste(self.board_flipped_img, (0, 0))
 
-        for y, x in itertools.product(range(8), range(8)):
+        for y, x in itertools.product(range(8), repeat=2):
             if self.chessboard[y][x] is not None:
                 piece_img = self.chessboard[y][x].img
                 result_normal.paste(piece_img, (x * 64, y * 64), mask=piece_img)
