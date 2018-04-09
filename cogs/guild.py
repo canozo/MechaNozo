@@ -57,9 +57,9 @@ class Guild:
             guild_reqs.pop(clr)
             await ctx.send(f'Challenge by <@{clr}> timed out!')
 
-    @commands.command(description='Request an user to play a game, must mention the user.')
+    @commands.command()
     async def challenge(self, ctx, user: discord.Member=None):
-        """Challenge an user."""
+        """Request an user to play a game, must mention the user."""
         if user is None:
             await ctx.send('You have to specify who you\'re challenging! '
                            f'(ex: `{self.bot.command_prefix}challenge @{ctx.author}`)')
@@ -85,9 +85,9 @@ class Guild:
                 await ctx.send(f'Challenging {user.name}! Say `{self.bot.command_prefix}accept` to accept.')
                 await self.timeout(ctx, guild_reqs, author_id, user.id)
 
-    @commands.command(description='Accept all game requests you chould have.')
+    @commands.command()
     async def accept(self, ctx):
-        """Accept challenges."""
+        """Accept all the game requests you have."""
         user_id = ctx.author.id
         guild_id = ctx.guild.id
 
@@ -107,10 +107,7 @@ class Guild:
                     if cld not in self.usernames:
                         self.usernames[cld] = ctx.author
 
-                    players = [clr, cld]
-                    random.shuffle(players)
-                    white, black = players
-
+                    white, black = random.shuffle([clr, cld])
                     game_cog = self.bot.cogs['Game']
                     game_cog.new_game(white, black, guild_id)
                     guild_reqs.pop(clr)
@@ -122,9 +119,9 @@ class Guild:
                     board_normal, _ = game_cog.games[game_cog.last_game_id].img_path()
                     await ctx.send(msg, file=discord.File(board_normal, 'board.png'))
 
-    @commands.command(description='Shows you all the games you\'re part of.')
+    @commands.command()
     async def remember(self, ctx):
-        """Show all your games."""
+        """Show all the games you're part of."""
         user_id = ctx.author.id
         game_cog = self.bot.cogs['Game']
         msg = '```Your games:\n'
@@ -136,9 +133,9 @@ class Guild:
         msg += '```'
         await ctx.send(msg)
 
-    @commands.command(description='Shows the ranks in your guild. Play a match to get a rank!')
+    @commands.command(name='ranks')
     async def rankings(self, ctx):
-        """Show rankings."""
+        """Shows the ranks in your guild. Play a match to get a rank!"""
         guild_id = ctx.guild.id
 
         if guild_id not in self.ranks:

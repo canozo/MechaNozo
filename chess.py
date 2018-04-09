@@ -20,7 +20,7 @@ class Chess:
         return self.board.get_images()
 
     def move(self, player_id: int, mv_from: str, mv_into: str, promote_to: str=None) -> int:
-        if (self.white_turn and not player_id == self.white) or (not self.white_turn and not player_id == self.black):
+        if (self.white_turn and player_id != self.white) or (not self.white_turn and player_id != self.black):
             # not the players turn
             return 1
 

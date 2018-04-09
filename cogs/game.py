@@ -51,9 +51,9 @@ class Game:
         print(f'id {self.last_game_id}, {usernames[white]}(id {white})(white) vs {usernames[black]}(id {black})(black)')
         print('__________________')
 
-    @commands.command(description='Show the chessboard flipped to your side.')
+    @commands.command()
     async def board(self, ctx, game_id: int):
-        """Show the board."""
+        """Show the game board, must specify the game id."""
         user_id = ctx.author.id
         guild_id = ctx.guild.id
 
@@ -71,9 +71,9 @@ class Game:
             else:
                 await ctx.send(msg, file=discord.File(board_flipped, 'board.png'))
 
-    @commands.command(description='Forfeit an ongoing game you\'re part of.')
+    @commands.command()
     async def surrender(self, ctx, game_id: int):
-        """Forfeit."""
+        """Forfeit and end one of your games, must specify the game id."""
         user_id = ctx.author.id
         guild_id = ctx.guild.id
 
@@ -85,9 +85,10 @@ class Game:
             guild_cog.update_ranks(guild_id, False, winner, user_id)
             self.games.pop(game_id)
 
-    @commands.command(description='Execute a move, moves are formatted like such: d2 d4, b8 c6, etc')
+    @commands.command()
     async def move(self, ctx, game_id: int, fr: str, to: str, promotion: str=None):
-        """Make a move."""
+        """Make a move, must specify the game id as well as where you're moving from and into (Ex: `a1 h8`, `c2 c4`).
+        If you can promote, you must specify what piece you're promoting to (`queen`, `knight`, `rook` or `bishop`)."""
         user_id = ctx.author.id
         guild_id = ctx.guild.id
 

@@ -1,7 +1,7 @@
 from discord.ext import commands
 import sys
 import json
-import asyncio
+import discord
 import traceback
 
 try:
@@ -15,23 +15,60 @@ except FileNotFoundError:
     sys.exit()
 
 except KeyError:
-    print('config.json file missing a key! Exiting...')
+    print('config.json missing a key! Exiting...')
     sys.exit()
 
+help_dict = {}
 extensions = [
     'cogs.game',
     'cogs.guild'
 ]
 
-bot_description = '''chess-tan!
-Simple chess bot for playing chess matches on discord, making using of discord.py.'''
+bot_description = '''smug-bot!
+Simple bot for playing chess matches on discord.'''
 bot = commands.Bot(command_prefix=prefix, description=bot_description)
 
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activity=discord.Game('?help'))
     print(f'{bot.user.name} ({bot.user.id}) is up and running!')
     print('__________________')
+
+
+@commands.command(name='help', hidden=True)
+async def _help(ctx, command: str=None):
+    embed = discord.Embed(title='smug-bot help', type='rich', colour=discord.Colour.magenta())
+    if command is None:
+        embed.description = f'List of available commands, type `{prefix}help command` to get more info!'
+        for cog, cmd_dict in help_dict.items():
+            value = ''
+            for cmd in cmd_dict:
+                value += f'`{cmd}` '
+            embed.add_field(name=cog, value=value, inline=False)
+
+    elif command != 'help':
+        found = False
+        help_msg = None
+        usage = []
+        for _, cmd_dict in help_dict.items():
+            if command in cmd_dict:
+                found = True
+                help_msg, params = cmd_dict[command]
+                usage.append(f'{prefix}{command}')
+
+                for var, param in params.items():
+                    if var not in ('self', 'ctx'):
+                        usage.append(var)
+                        embed.add_field(name=f'Parameter {var}', value=f'`{param}`', inline=False)
+
+        if found:
+            embed.title = command
+            embed.description = f'{help_msg}'
+            embed.add_field(name='Usage', value='`'+' '.join(usage)+'`', inline=False)
+        else:
+            embed.description = 'This command doesn\'t exist!!'
+    await ctx.send(embed=embed)
 
 
 @bot.event
@@ -47,16 +84,12 @@ async def on_command_error(ctx, exception):
 
 @bot.command(hidden=True)
 async def kill(ctx):
-    await ctx.send('Bye!')
-    is_owner = await ctx.bot.is_owner(ctx.author)
-
-    if is_owner:
+    if await ctx.bot.is_owner(ctx.author):
         print('Bot is being logged out.')
         print('__________________')
+        await ctx.send('Bye!')
+        await bot.change_presence(status=discord.Status.offline)
         await bot.logout()
-    else:
-        await asyncio.sleep(5)
-        await ctx.send('SIKE')
 
 
 def main():
@@ -67,6 +100,18 @@ def main():
             print(f'Failed to load extension {extension}.', file=sys.stderr)
             print(exc)
             traceback.print_exc()
+
+    bot.remove_command('help')
+    bot.add_command(_help)
+
+    for cmd, obj in bot.all_commands.items():
+        if not obj.hidden:
+            category = obj.module.split('.')[1].title()
+            if category not in help_dict:
+                help_dict[category] = {}
+            cmd_dict = help_dict[category]
+            cmd_dict[cmd] = (obj.help, obj.params)
+
     bot.run(token)
 
 
