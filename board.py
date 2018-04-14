@@ -175,6 +175,8 @@ class Board:
 
             elif self.promote_to == 'rook':
                 self.chessboard[ny][nx] = Rook(white_turn)
+
+            self.promotion = False
         else:
             self.chessboard[y][x].has_moved = True
             self.chessboard[ny][nx] = self.chessboard[y][x]
