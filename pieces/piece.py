@@ -6,8 +6,6 @@ class Piece(ABC):
     def __init__(self, is_white: bool, has_moved: bool):
         self.is_white = is_white
         self.has_moved = has_moved
-        self.text = None
-        self.unicode = None
         self.img = None
 
     @staticmethod

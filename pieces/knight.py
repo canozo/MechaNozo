@@ -8,12 +8,8 @@ class Knight(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(Knight, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'N'
-            self.unicode = '\u2658'
             self.img = Image.open('pictures/knight-w.png')
         else:
-            self.text = 'n'
-            self.unicode = '\u265e'
             self.img = Image.open('pictures/knight-b.png')
 
     def __deepcopy__(self, memodict):

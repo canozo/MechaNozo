@@ -158,7 +158,7 @@ class Game:
                           f'<@{white}> (white) vs <@{black}> (black). ' \
                           f'Say `{self.bot.command_prefix}help move` to learn how to move!'
 
-                    board_normal, _ = self.games[self.last_game_id].img_path()
+                    board_normal, _ = self.games[self.last_game_id].get_images()
                     await ctx.send(msg, file=discord.File(board_normal, 'board.png'))
 
     @commands.command()
@@ -207,7 +207,7 @@ class Game:
 
         if await self.verify_game(ctx, game_id, user_id, guild_id):
             match = self.games[game_id]
-            board_normal, board_flipped = match.img_path()
+            board_normal, board_flipped = match.get_images()
 
             if match.white_turn:
                 msg = 'White turn:'
@@ -244,7 +244,7 @@ class Game:
             error = match.move(user_id, fr, to, promotion)
 
             if not error:
-                board_normal, board_flipped = match.img_path()
+                board_normal, board_flipped = match.get_images()
                 gameover, stalemate = match.status()
 
                 if user_id == match.white:

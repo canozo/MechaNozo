@@ -1,5 +1,4 @@
-from PIL import Image
-from typing import TypeVar, Tuple, List
+from typing import TypeVar, List
 from pieces.piece import Piece
 from pieces.rook import Rook
 from pieces.bishop import Bishop
@@ -9,7 +8,6 @@ from pieces.king import King
 from pieces.pawn import Pawn
 import itertools
 import copy
-import os
 
 T = TypeVar('T', Piece, None)
 
@@ -25,10 +23,6 @@ class Board:
         self.white_controlled = None  # type: List[List[bool]]
         self.black_controlled = None  # type: List[List[bool]]
         self.chessboard = [[None for _ in range(8)] for _ in range(8)]  # type: List[List[T]]
-
-        # open images
-        self.board_normal_img = Image.open('pictures/board-normal.png')
-        self.board_flipped_img = Image.open('pictures/board-flipped.png')
 
         # initial position
         self.chessboard[0][0] = Rook(False)
@@ -84,32 +78,32 @@ class Board:
                 legal = False
 
             # no friendly fire
-            if self.chessboard[ny][nx] and white_turn == self.chessboard[ny][nx].is_white:
+            if legal and self.chessboard[ny][nx] and white_turn == self.chessboard[ny][nx].is_white:
                 legal = False
 
             # check if player wants to castle
-            if isinstance(self.chessboard[y][x], King) and not self.check(white_turn) and abs(x-nx) == 2:
+            if legal and isinstance(self.chessboard[y][x], King) and not self.check(white_turn) and abs(x-nx) == 2:
                 legal = legal and self.can_castle(x, y, nx, ny)
 
             # check if can do en passant
-            elif self.en_passant and isinstance(self.chessboard[y][x], Pawn)\
+            elif legal and self.en_passant and isinstance(self.chessboard[y][x], Pawn)\
                     and nx == self.en_passant_x and ny == self.en_passant_y:
                 legal = self.chessboard[y][x].can_move(x, y, nx, ny, True)
 
             #  all normal moves
-            elif not self.chessboard[y][x].can_move(x, y, nx, ny, self.chessboard[ny][nx] is not None):
+            elif legal and not self.chessboard[y][x].can_move(x, y, nx, ny, self.chessboard[ny][nx] is not None):
                 legal = False
 
             # check that there's no jumping pieces
-            if not isinstance(self.chessboard[y][x], Knight) and not isinstance(self.chessboard[y][x], King):
+            if legal and not isinstance(self.chessboard[y][x], Knight) and not isinstance(self.chessboard[y][x], King):
                 legal = legal and not self.jumps(x, y, nx, ny)
 
             # check white king doesn't move to a controlled square
-            if isinstance(self.chessboard[y][x], King) and white_turn and self.black_controlled[ny][nx]:
+            if legal and isinstance(self.chessboard[y][x], King) and white_turn and self.black_controlled[ny][nx]:
                 legal = False
 
             # check black king doesn't move to a controlled square
-            elif isinstance(self.chessboard[y][x], King) and not white_turn and self.white_controlled[ny][nx]:
+            elif legal and isinstance(self.chessboard[y][x], King) and not white_turn and self.white_controlled[ny][nx]:
                 legal = False
 
             # check that king doesn't move to a square that was covered by himself
@@ -198,13 +192,13 @@ class Board:
             rook_x = nx - 2
             increment = -1
 
+        if self.chessboard[y][rook_x].has_moved or self.chessboard[y][x].has_moved:
+            return False
+
         if self.chessboard[y][rook_x] is None:
             return False
 
         if self.jumps(x, y, rook_x, ny):
-            return False
-
-        if self.chessboard[y][rook_x].has_moved or self.chessboard[y][x].has_moved:
             return False
 
         i = x
@@ -330,24 +324,3 @@ class Board:
                 return True
 
         return False
-
-    def get_images(self) -> Tuple[str, str]:
-        normal_board = 'temp/result-normal.png'
-        flipped_board = 'temp/result-flipped.png'
-        result_normal = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
-        result_flipped = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
-        result_normal.paste(self.board_normal_img, (0, 0))
-        result_flipped.paste(self.board_flipped_img, (0, 0))
-
-        for y, x in itertools.product(range(8), repeat=2):
-            if self.chessboard[y][x] is not None:
-                piece_img = self.chessboard[y][x].img
-                result_normal.paste(piece_img, (x * 64, y * 64), mask=piece_img)
-                result_flipped.paste(piece_img, (448 - x * 64, 448 - y * 64), mask=piece_img)
-
-        if not os.path.isdir('temp/'):
-            os.makedirs('temp/')
-
-        result_normal.save(normal_board)
-        result_flipped.save(flipped_board)
-        return normal_board, flipped_board

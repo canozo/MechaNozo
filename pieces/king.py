@@ -8,12 +8,8 @@ class King(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(King, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'K'
-            self.unicode = '\u2654'
             self.img = Image.open('pictures/king-w.png')
         else:
-            self.text = 'k'
-            self.unicode = '\u265a'
             self.img = Image.open('pictures/king-b.png')
 
     def __deepcopy__(self, memodict):

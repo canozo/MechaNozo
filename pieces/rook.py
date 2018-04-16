@@ -7,12 +7,8 @@ class Rook(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(Rook, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'R'
-            self.unicode = '\u2656'
             self.img = Image.open('pictures/rook-w.png')
         else:
-            self.text = 'r'
-            self.unicode = '\u265c'
             self.img = Image.open('pictures/rook-b.png')
 
     def __deepcopy__(self, memodict):

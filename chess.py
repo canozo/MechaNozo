@@ -1,4 +1,7 @@
 from typing import Tuple
+from PIL import Image
+import itertools
+import os
 import board
 
 
@@ -16,8 +19,31 @@ class Chess:
         self.new_x = 0
         self.new_y = 0
 
-    def img_path(self) -> Tuple[str, str]:
-        return self.board.get_images()
+        # open images
+        self.board_normal_img = Image.open('pictures/board-normal.png')
+        self.board_flipped_img = Image.open('pictures/board-flipped.png')
+
+    def get_images(self) -> Tuple[str, str]:
+        normal_board = 'temp/result-normal.png'
+        flipped_board = 'temp/result-flipped.png'
+        result_normal = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
+        result_flipped = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
+        result_normal.paste(self.board_normal_img, (0, 0))
+        result_flipped.paste(self.board_flipped_img, (0, 0))
+        chessboard = self.board.chessboard
+
+        for y, x in itertools.product(range(8), repeat=2):
+            if chessboard[y][x] is not None:
+                piece_img = chessboard[y][x].img
+                result_normal.paste(piece_img, (x * 64, y * 64), mask=piece_img)
+                result_flipped.paste(piece_img, (448 - x * 64, 448 - y * 64), mask=piece_img)
+
+        if not os.path.isdir('temp/'):
+            os.makedirs('temp/')
+
+        result_normal.save(normal_board)
+        result_flipped.save(flipped_board)
+        return normal_board, flipped_board
 
     def move(self, player_id: int, mv_from: str, mv_into: str, promote_to: str=None) -> int:
         if (self.white_turn and player_id != self.white) or (not self.white_turn and player_id != self.black):

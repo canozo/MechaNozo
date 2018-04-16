@@ -7,12 +7,8 @@ class Bishop(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(Bishop, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'B'
-            self.unicode = '\u2657'
             self.img = Image.open('pictures/bishop-w.png')
         else:
-            self.text = 'b'
-            self.unicode = '\u265d'
             self.img = Image.open('pictures/bishop-b.png')
 
     def __deepcopy__(self, memodict):

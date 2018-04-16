@@ -7,12 +7,8 @@ class Queen(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(Queen, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'Q'
-            self.unicode = '\u2655'
             self.img = Image.open('pictures/queen-w.png')
         else:
-            self.text = 'q'
-            self.unicode = '\u265b'
             self.img = Image.open('pictures/queen-b.png')
 
     def __deepcopy__(self, memodict):

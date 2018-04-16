@@ -7,12 +7,8 @@ class Pawn(Piece):
     def __init__(self, is_white: bool, has_moved: bool=False):
         super(Pawn, self).__init__(is_white, has_moved)
         if self.is_white:
-            self.text = 'P'
-            self.unicode = '\u2659'
             self.img = Image.open('pictures/pawn-w.png')
         else:
-            self.text = 'p'
-            self.unicode = '\u265f'
             self.img = Image.open('pictures/pawn-b.png')
 
     def __deepcopy__(self, memodict):
