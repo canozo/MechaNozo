@@ -15,6 +15,9 @@ class Knight(Piece):
     def __deepcopy__(self, memodict):
         return Knight(self.is_white, self.has_moved)
 
+    def check_laser(self, chessboard, x, y, check_mode):
+        return []
+
     def can_move(self, x: int, y: int, new_x: int, new_y: int, piece_in_path: bool) -> bool:
         dx = abs(x-new_x)
         dy = abs(y-new_y)

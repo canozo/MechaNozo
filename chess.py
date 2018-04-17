@@ -61,27 +61,26 @@ class Chess:
             self.new_x = 'abcdefgh'.find(mv_into[0])
             self.new_y = '87654321'.find(mv_into[1])
 
-            if not self.board.gatekeeper(
-                    self.old_x, self.old_y, self.new_x, self.new_y, self.white_turn, False, promote_to):
+            if not self.board.gatekeeper(self.old_x, self.old_y, self.new_x, self.new_y, False, promote_to):
                 # illegal move
                 return 3
 
             else:
                 # move executed
-                self.white_turn = not self.white_turn
+                self.white_turn = self.board.white_turn
 
                 # checkmate happened
-                if self.board.check(self.white_turn) and not self.board.has_legal_move(self.white_turn):
+                if self.board.check() and not self.board.has_legal_move():
                     self.gameover = True
 
                 # stalemate happened
-                elif not self.board.has_legal_move(self.white_turn):
+                elif not self.board.has_legal_move():
                     self.gameover = True
                 return 0
 
     def status(self) -> Tuple[bool, bool]:
         # returns the current status of the game (is game over, is stalemate)
-        return self.gameover, self.gameover and not self.board.check(self.white_turn)
+        return self.gameover, self.gameover and not self.board.check()
 
     def surrender(self, player_id: int) -> int:
         winner = None
