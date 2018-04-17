@@ -1,5 +1,5 @@
 from discord.ext import commands
-from chess import Chess
+from .utils.chess import Chess
 from typing import Dict
 import discord
 import json

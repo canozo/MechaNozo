@@ -2,7 +2,7 @@ from typing import Tuple
 from PIL import Image
 import itertools
 import os
-import board
+from .board import Board
 
 
 class Chess:
@@ -11,7 +11,7 @@ class Chess:
         self.black = black
         self.game_id = game_id
         self.guild_id = guild_id
-        self.board = board.Board()
+        self.board = Board()
         self.white_turn = True
         self.gameover = False
         self.old_x = 0
