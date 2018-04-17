@@ -1,11 +1,11 @@
 from typing import TypeVar, List, Tuple
-from pieces.piece import Piece
-from pieces.rook import Rook
-from pieces.bishop import Bishop
-from pieces.knight import Knight
-from pieces.queen import Queen
-from pieces.king import King
-from pieces.pawn import Pawn
+from .pieces.piece import Piece
+from .pieces.rook import Rook
+from .pieces.bishop import Bishop
+from .pieces.knight import Knight
+from .pieces.queen import Queen
+from .pieces.king import King
+from .pieces.pawn import Pawn
 import itertools
 import copy
 
