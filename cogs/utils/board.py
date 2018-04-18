@@ -20,8 +20,6 @@ class Board:
         self.en_passant = False
         self.en_passant_x = -1
         self.en_passant_y = -1
-        self.promotion = False
-        self.promote_to = None
         self.white_controlled = None  # type: List[List[bool]]
         self.black_controlled = None  # type: List[List[bool]]
         self.chessboard = [[None for _ in range(8)] for _ in range(8)]  # type: List[List[T]]
@@ -86,7 +84,7 @@ class Board:
 
             # check if player wants to castle
             if legal and isinstance(piece, King) and not self.check() and abs(x-nx) == 2:
-                legal = legal and self.can_castle(x, y, nx, ny)
+                legal = self.can_castle(x, y, nx, ny)
 
             # check if can do en passant
             elif legal and self.en_passant and isinstance(piece, Pawn)\
@@ -99,7 +97,7 @@ class Board:
 
             # check that there's no jumping pieces
             if legal and not isinstance(piece, Knight) and not isinstance(piece, King):
-                legal = legal and not self.jumps(x, y, nx, ny)
+                legal = not self.jumps(x, y, nx, ny)
 
             # check white king doesn't move to a controlled square
             if legal and isinstance(piece, King) and self.white_turn and self.black_controlled[ny][nx]:
@@ -116,7 +114,9 @@ class Board:
             # check if the player can promote
             if legal and isinstance(piece, Pawn) \
                     and ((self.white_turn and ny == 0) or (not self.white_turn and ny == 7)):
-                legal = self.can_promote(promote_to)
+                legal = promote_to in ('queen', 'rook', 'bishop', 'knight')
+            else:
+                promote_to = None
 
             # get ready for a possible en passant on next turn
             if not review_mode and legal and isinstance(piece, Pawn) and abs(y-ny) == 2:
@@ -154,7 +154,7 @@ class Board:
                         legal = False
 
         if not review_mode and legal:
-            self.execute(x, y, nx, ny)
+            self.execute(x, y, nx, ny, promote_to)
 
             if self.en_passant:
                 self.en_passant = False
@@ -164,7 +164,7 @@ class Board:
 
         return legal
 
-    def execute(self, x: int, y: int, nx: int, ny: int) -> None:
+    def execute(self, x: int, y: int, nx: int, ny: int, promote_to: str) -> None:
         game_state = (copy.deepcopy(self.chessboard),
                       self.white_turn,
                       self.en_passant,
@@ -188,20 +188,19 @@ class Board:
             else:
                 self.chessboard[ny-1][nx] = None
 
-        if self.promotion:
-            if self.promote_to == 'queen':
+        if promote_to is not None:
+            if promote_to == 'queen':
                 self.chessboard[ny][nx] = Queen(self.white_turn)
 
-            elif self.promote_to == 'knight':
+            elif promote_to == 'knight':
                 self.chessboard[ny][nx] = Knight(self.white_turn)
 
-            elif self.promote_to == 'bishop':
+            elif promote_to == 'bishop':
                 self.chessboard[ny][nx] = Bishop(self.white_turn)
 
-            elif self.promote_to == 'rook':
+            elif promote_to == 'rook':
                 self.chessboard[ny][nx] = Rook(self.white_turn)
 
-            self.promotion = False
         else:
             self.chessboard[y][x].has_moved = True
             self.chessboard[ny][nx] = self.chessboard[y][x]
@@ -358,16 +357,6 @@ class Board:
                 self.white_controlled = self.chessboard[i][j].controlled(self.white_controlled, self.chessboard, j, i)
             elif self.chessboard[i][j] is not None and not self.chessboard[i][j].is_white:
                 self.black_controlled = self.chessboard[i][j].controlled(self.black_controlled, self.chessboard, j, i)
-
-    def can_promote(self, promote_to: str) -> bool:
-        if promote_to is None:
-            return False
-        elif promote_to not in ('queen', 'knight', 'bishop', 'rook'):
-            return False
-        else:
-            self.promotion = True
-            self.promote_to = promote_to
-            return True
 
     def check(self) -> bool:
         king_y = king_x = 0
