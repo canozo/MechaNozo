@@ -285,6 +285,28 @@ class Game:
                 # made an illegal move
                 await ctx.send(f'`{fr} {to}` is an illegal move!')
 
+    @commands.command()
+    async def takeback(self, ctx, game_id: int):
+        """Request to undo the last move. Both players have to agree to undo a move."""
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+
+        if await self.verify_game(ctx, game_id, user_id, guild_id):
+            match = self.games[game_id]
+            if not match.takeback(user_id):
+                await ctx.send('You have requested a takeback!')
+            else:
+                board_normal, board_flipped = match.get_images()
+                if match.white_turn:
+                    msg = 'Takeback accepted! White turn:'
+                else:
+                    msg = 'Takeback accepted! Black turn:'
+
+                if match.white_turn:
+                    await ctx.send(msg, file=discord.File(board_normal, 'board.png'))
+                else:
+                    await ctx.send(msg, file=discord.File(board_flipped, 'board.png'))
+
 
 def setup(bot):
     bot.add_cog(Game(bot))

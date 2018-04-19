@@ -13,6 +13,8 @@ class Chess:
         self.guild_id = guild_id
         self.board = Board()
         self.white_turn = True
+        self.white_undo = False
+        self.black_undo = False
         self.gameover = False
         self.old_x = 0
         self.old_y = 0
@@ -67,6 +69,8 @@ class Chess:
 
             else:
                 # move executed
+                self.white_undo = False
+                self.black_undo = False
                 self.white_turn = self.board.white_turn
 
                 # checkmate happened
@@ -94,3 +98,18 @@ class Chess:
             winner = self.white
 
         return winner
+
+    def takeback(self, player_id: int) -> bool:
+        if player_id == self.white:
+            self.white_undo = True
+        elif player_id == self.black:
+            self.black_undo = True
+
+        if self.white_undo and self.black_undo:
+            self.white_undo = False
+            self.black_undo = False
+            self.board.undo()
+            self.white_turn = self.board.white_turn
+            return True
+        else:
+            return False
