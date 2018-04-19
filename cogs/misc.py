@@ -15,7 +15,7 @@ class Misc:
     @commands.command(name='help')
     async def _help(self, ctx, command: str = None):
         """Show all of the available commands and how to use specific commands."""
-        embed = discord.Embed(title='smug-bot help', type='rich', colour=discord.Colour.magenta())
+        embed = discord.Embed(title=f'{self.bot.user.name} help', type='rich', colour=discord.Colour.magenta())
         if command is None:
             embed.description = f'List of available commands, type ' \
                                 f'`{self.bot.command_prefix}help command` to get more info!'
@@ -41,7 +41,7 @@ class Misc:
                             embed.add_field(name=f'Parameter: {var}', value=f'`{param}`', inline=False)
 
             if found:
-                embed.title = command
+                embed.title = f'Command: {command}'
                 embed.description = f'{help_msg}'
                 embed.add_field(name='Usage', value='`' + ' '.join(usage) + '`', inline=False)
             else:
