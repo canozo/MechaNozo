@@ -45,7 +45,7 @@ class Game:
         else:
             return True
 
-    def new_game(self, white: int, black: int, guild_id: int) -> None:
+    def new_game(self, white: int, black: int, guild_id: int, guild_name: str) -> None:
         self.last_game_id += 1
 
         if guild_id not in self.ranks:
@@ -58,7 +58,11 @@ class Game:
         if black not in guild_ranks:
             guild_ranks[black] = 1000.0
 
-        self.games[self.last_game_id] = Chess(white, black, self.last_game_id, guild_id)
+        white_name = str(self.bot.usernames[white])
+        black_name = str(self.bot.usernames[black])
+
+        self.games[self.last_game_id] = Chess(white, black, self.last_game_id, guild_id, guild_name,
+                                              white_name, black_name, int(guild_ranks[white]), int(guild_ranks[black]))
         print(f'New match starting on guild {guild_id}:')
         print(f'id {self.last_game_id}, {self.bot.usernames[white]}(id {white})(white) '
               f'vs {self.bot.usernames[black]}(id {black})(black)')
@@ -151,7 +155,7 @@ class Game:
                     random.shuffle(players)
                     white, black = players
 
-                    self.new_game(white, black, guild_id)
+                    self.new_game(white, black, guild_id, ctx.guild.name)
                     guild_reqs.pop(clr)
 
                     msg = f'New match started: id `{self.last_game_id}`, ' \
@@ -193,8 +197,8 @@ class Game:
         embed = discord.Embed(title=f'{ctx.guild.name}\'s rankings', type='rich', colour=discord.Colour.magenta())
 
         for user_id in sorted(guild_ranks, key=guild_ranks.get, reverse=True):
-            name = f'#{rank} {self.bot.usernames[user_id]}'
-            embed.add_field(name=name, value=f'`{guild_ranks[user_id]}`', inline=False)
+            name = f'{rank}. {self.bot.usernames[user_id]}'
+            embed.add_field(name=name, value=f'`{int(guild_ranks[user_id])}`', inline=False)
             rank += 1
 
         await ctx.send(embed=embed)
@@ -226,8 +230,9 @@ class Game:
         guild_id = ctx.guild.id
 
         if await self.verify_game(ctx, game_id, user_id, guild_id):
-            winner = self.games[game_id].surrender(user_id)
-            await ctx.send(f'<@{user_id}> surrenders, <@{winner}> wins!')
+            match = self.games[game_id]
+            winner = match.surrender(user_id)
+            await ctx.send(f'<@{user_id}> surrenders, <@{winner}> wins! PGN:\n```{match.get_pgn()}```')
 
             self.update_ranks(guild_id, False, winner, user_id)
             self.games.pop(game_id)
@@ -253,12 +258,12 @@ class Game:
                     player_two = match.white
 
                 if stalemate:
-                    msg = f'<@{player_two}> and <@{user_id}> tied!'
+                    msg = f'<@{player_two}> and <@{user_id}> tied! PGN:\n```{match.get_pgn()}```'
                     self.update_ranks(guild_id, stalemate, user_id, player_two)
                     self.games.pop(game_id)
 
                 elif gameover:
-                    msg = f'<@{player_two}> got checkmated, <@{user_id}> wins!'
+                    msg = f'<@{player_two}> got checkmated, <@{user_id}> wins! PGN:\n```{match.get_pgn()}```'
                     self.update_ranks(guild_id, stalemate, user_id, player_two)
                     self.games.pop(game_id)
 
@@ -318,7 +323,8 @@ class Game:
             if not match.draw(user_id):
                 await ctx.send('You have requested a draw!')
             else:
-                await ctx.send(f'<@{match.black}> and <@{match.white}> have agreed a draw!')
+                await ctx.send(f'<@{match.black}> and <@{match.white}> have agreed a draw! '
+                               f'PGN:\n```{match.get_pgn()}```')
                 self.update_ranks(guild_id, True, match.black, match.white)
                 self.games.pop(game_id)
 
@@ -331,7 +337,7 @@ class Game:
         if await self.verify_game(ctx, game_id, user_id, guild_id):
             match = self.games[game_id]
             if match.board.move_count > 0:
-                await ctx.send(f'`{match.board.pgn}`')
+                await ctx.send(f'```{match.get_pgn()}```')
 
 
 def setup(bot):

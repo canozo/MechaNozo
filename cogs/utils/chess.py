@@ -2,15 +2,23 @@ from typing import Tuple
 from PIL import Image
 import itertools
 import os
+import time
 from .board import Board
 
 
 class Chess:
-    def __init__(self, white: int, black: int, game_id: int, guild_id: int):
+    def __init__(self, white: int, black: int, game_id: int, guild_id: int, guild_name: str, white_user: str,
+                 black_user: str, white_elo: int, black_elo: int):
         self.white = white
         self.black = black
         self.game_id = game_id
         self.guild_id = guild_id
+        self.guild_name = guild_name
+        self.white_user = white_user
+        self.black_user = black_user
+        self.white_elo = white_elo
+        self.black_elo = black_elo
+        self.date = time.strftime('%Y.%m.%d')
         self.board = Board()
         self.white_turn = True
         self.white_undo = False
@@ -126,3 +134,16 @@ class Chess:
             return True
         else:
             return False
+
+    def get_pgn(self) -> str:
+        tags = '[Event "Discord Chess game"]\n'\
+               f'[Site "{self.guild_name}"]\n'\
+               f'[Date "{self.date}"]\n'\
+               '[Round "-"]\n'\
+               f'[White "{self.white_user}"]\n'\
+               f'[Black "{self.black_user}"]\n'\
+               f'[Result "{self.board.result}"]\n'\
+               f'[WhiteElo "{self.white_elo}"]\n'\
+               f'[BlackElo "{self.black_elo}"]\n'\
+               '[Variant "Standard"]\n\n'
+        return tags + self.board.pgn

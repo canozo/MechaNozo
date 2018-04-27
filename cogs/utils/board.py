@@ -16,6 +16,7 @@ class Board:
     def __init__(self):
         # game settings
         self.pgn = ''
+        self.result = '*'
         self.move_count = 0
         self.history = []
         self.is_checked = False
@@ -255,7 +256,10 @@ class Board:
 
         if self.white_turn:
             self.move_count += 1
-            move_number = f' {self.move_count}.'
+            if self.move_count > 1:
+                move_number = f' {self.move_count}.'
+            else:
+                move_number = f'{self.move_count}.'
         else:
             move_number = ''
 
@@ -268,11 +272,15 @@ class Board:
         if self.is_checked and not self.has_moves:
             if self.white_turn:
                 status = '# { Black wins by checkmate. } 0-1'
+                self.result = '0-1'
             else:
                 status = '# { White wins by checkmate. } 1-0'
+                self.result = '1-0'
+
         elif self.is_checked:
             status = '+'
         elif not self.is_checked and not self.has_moves:
+            self.result = '1/2-1/2'
             status = ' { Draw by stalemate. } 1/2-1/2'
 
         if castle is None:
@@ -294,12 +302,15 @@ class Board:
             self.update_controlled()
 
     def draw(self) -> None:
+        self.result = '1/2-1/2'
         self.pgn += ' { A draw was agreed. } 1/2-1/2'
 
     def surrender(self, player: bool) -> None:
         if player:
+            self.result = '0-1'
             self.pgn += ' { White resigns. } 0-1'
         else:
+            self.result = '1-0'
             self.pgn += ' { Black resigns. } 1-0'
 
     def get_details(self, x: int, y: int, nx: int, ny: int) -> str:
