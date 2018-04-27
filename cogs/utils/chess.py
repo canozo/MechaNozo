@@ -15,6 +15,8 @@ class Chess:
         self.white_turn = True
         self.white_undo = False
         self.black_undo = False
+        self.white_draw = False
+        self.black_draw = False
         self.gameover = False
         self.old_x = 0
         self.old_y = 0
@@ -74,30 +76,42 @@ class Chess:
                 self.white_turn = self.board.white_turn
 
                 # checkmate happened
-                if self.board.check() and not self.board.has_legal_move():
+                if self.board.is_checked and not self.board.has_moves:
                     self.gameover = True
 
                 # stalemate happened
-                elif not self.board.has_legal_move():
+                elif not self.board.has_moves:
                     self.gameover = True
                 return 0
 
     def status(self) -> Tuple[bool, bool]:
         # returns the current status of the game (is game over, is stalemate)
-        return self.gameover, self.gameover and not self.board.check()
+        return self.gameover, self.gameover and not self.board.is_checked
 
     def surrender(self, player_id: int) -> int:
-        winner = None
-
         if player_id == self.white:
+            self.board.surrender(True)
             self.gameover = True
             winner = self.black
-
-        elif player_id == self.black:
+        else:
+            self.board.surrender(False)
             self.gameover = True
             winner = self.white
-
         return winner
+
+    def draw(self, player_id: int) -> bool:
+        if player_id == self.white:
+            self.white_draw = True
+        elif player_id == self.black:
+            self.black_draw = True
+
+        if self.white_draw and self.black_draw:
+            self.white_draw = self.black_draw = False
+            self.board.draw()
+            self.gameover = True
+            return True
+        else:
+            return False
 
     def takeback(self, player_id: int) -> bool:
         if player_id == self.white:
@@ -106,8 +120,7 @@ class Chess:
             self.black_undo = True
 
         if self.white_undo and self.black_undo:
-            self.white_undo = False
-            self.black_undo = False
+            self.white_undo = self.black_undo = False
             self.board.undo()
             self.white_turn = self.board.white_turn
             return True

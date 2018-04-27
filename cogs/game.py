@@ -307,6 +307,32 @@ class Game:
                 else:
                     await ctx.send(msg, file=discord.File(board_flipped, 'board.png'))
 
+    @commands.command()
+    async def draw(self, ctx, game_id: int):
+        """Offer the other player a draw (or accept if an offer has already been made)."""
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+
+        if await self.verify_game(ctx, game_id, user_id, guild_id):
+            match = self.games[game_id]
+            if not match.draw(user_id):
+                await ctx.send('You have requested a draw!')
+            else:
+                await ctx.send(f'<@{match.black}> and <@{match.white}> have agreed a draw!')
+                self.update_ranks(guild_id, True, match.black, match.white)
+                self.games.pop(game_id)
+
+    @commands.command()
+    async def pgn(self, ctx, game_id: int):
+        """Get the Portable Game Notation of one of your games."""
+        user_id = ctx.author.id
+        guild_id = ctx.guild.id
+
+        if await self.verify_game(ctx, game_id, user_id, guild_id):
+            match = self.games[game_id]
+            if match.board.move_count > 0:
+                await ctx.send(f'`{match.board.pgn}`')
+
 
 def setup(bot):
     bot.add_cog(Game(bot))

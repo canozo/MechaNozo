@@ -15,7 +15,11 @@ T = TypeVar('T', Piece, None)
 class Board:
     def __init__(self):
         # game settings
+        self.pgn = ''
+        self.move_count = 0
         self.history = []
+        self.is_checked = False
+        self.has_moves = True
         self.white_turn = True
         self.en_passant = False
         self.en_passant_x = -1
@@ -85,7 +89,7 @@ class Board:
                 legal = False
 
             # check if player wants to castle
-            if legal and isinstance(piece, King) and not self.check() and abs(x-nx) == 2:
+            if legal and isinstance(piece, King) and not self.is_checked and abs(x-nx) == 2:
                 legal = self.can_castle(x, y, nx, ny)
 
             # check if can do en passant
@@ -130,7 +134,7 @@ class Board:
                     en_passant_y = y+1
 
             # if the player is in check, see if he manages to get out of check
-            if legal and self.check():
+            if legal and self.is_checked:
                 attacking_pieces = self.get_attacking()
 
                 # moving outside of check
@@ -173,20 +177,55 @@ class Board:
                       self.white_turn,
                       self.en_passant,
                       self.en_passant_x,
-                      self.en_passant_y)
+                      self.en_passant_y,
+                      self.move_count,
+                      self.is_checked,
+                      self.has_moves,
+                      self.pgn)
         self.history.append(game_state)
+
+        move = 'abcdefgh'[nx] + '87654321'[ny]
+        details = self.get_details(x, y, nx, ny)
+        pawn_pos = ''
+        promotion = ''
+        status = ''
+        castle = None
+
+        if self.chessboard[ny][nx] is not None:
+            if isinstance(self.chessboard[y][x], Pawn):
+                pawn_pos = 'abcdefgh'[x]
+            take = 'x'
+        else:
+            take = ''
+
+        if isinstance(self.chessboard[y][x], King):
+            piece = ' K'
+        elif isinstance(self.chessboard[y][x], Queen):
+            piece = ' Q'
+        elif isinstance(self.chessboard[y][x], Knight):
+            piece = ' N'
+        elif isinstance(self.chessboard[y][x], Bishop):
+            piece = ' B'
+        elif isinstance(self.chessboard[y][x], Rook):
+            piece = ' R'
+        else:
+            piece = ' '
 
         if isinstance(self.chessboard[y][x], King):
             if nx-x == 2:
                 self.chessboard[y][nx-1] = self.chessboard[y][nx+1]
                 self.chessboard[y][nx+1] = None
+                castle = 'O-O'
 
             elif nx-x == -2:
                 self.chessboard[y][nx+1] = self.chessboard[y][nx-2]
                 self.chessboard[y][nx-2] = None
+                castle = 'O-O-O'
 
         if self.en_passant and isinstance(self.chessboard[y][x], Pawn)\
                 and ny == self.en_passant_y and nx == self.en_passant_x:
+            pawn_pos = 'abcdefgh'[x]
+            take = 'x'
             if self.white_turn:
                 self.chessboard[ny+1][nx] = None
             else:
@@ -194,29 +233,98 @@ class Board:
 
         if promote_to is not None:
             if promote_to == 'queen':
+                promotion = '=Q'
                 self.chessboard[ny][nx] = Queen(self.white_turn)
 
             elif promote_to == 'knight':
+                promotion = '=N'
                 self.chessboard[ny][nx] = Knight(self.white_turn)
 
             elif promote_to == 'bishop':
+                promotion = '=B'
                 self.chessboard[ny][nx] = Bishop(self.white_turn)
 
             elif promote_to == 'rook':
+                promotion = '=R'
                 self.chessboard[ny][nx] = Rook(self.white_turn)
 
         else:
+            promotion = ''
             self.chessboard[y][x].has_moved = True
             self.chessboard[ny][nx] = self.chessboard[y][x]
+
+        if self.white_turn:
+            self.move_count += 1
+            move_number = f' {self.move_count}.'
+        else:
+            move_number = ''
 
         self.white_turn = not self.white_turn
         self.chessboard[y][x] = None
         self.update_controlled()
+        self.is_checked = self.check()
+        self.has_moves = self.has_legal_move()
 
-    def undo(self):
+        if self.is_checked and not self.has_moves:
+            if self.white_turn:
+                status = '# { Black wins by checkmate. } 0-1'
+            else:
+                status = '# { White wins by checkmate. } 1-0'
+        elif self.is_checked:
+            status = '+'
+        elif not self.is_checked and not self.has_moves:
+            status = ' { Draw by stalemate. } 1/2-1/2'
+
+        if castle is None:
+            self.pgn += move_number + piece + details + pawn_pos + take + move + promotion + status
+        else:
+            self.pgn += move_number + castle + status
+
+    def undo(self) -> None:
         if len(self.history) > 0:
-            self.chessboard, self.white_turn, self.en_passant, self.en_passant_x, self.en_passant_y = self.history.pop()
+            self.chessboard,\
+                self.white_turn,\
+                self.en_passant,\
+                self.en_passant_x,\
+                self.en_passant_y,\
+                self.move_count,\
+                self.is_checked,\
+                self.has_moves,\
+                self.pgn = self.history.pop()
             self.update_controlled()
+
+    def draw(self) -> None:
+        self.pgn += ' { A draw was agreed. } 1/2-1/2'
+
+    def surrender(self, player: bool) -> None:
+        if player:
+            self.pgn += ' { White resigns. } 0-1'
+        else:
+            self.pgn += ' { Black resigns. } 1-0'
+
+    def get_details(self, x: int, y: int, nx: int, ny: int) -> str:
+        piece = self.chessboard[y][x]
+        if isinstance(piece, Pawn):
+            return ''
+        for dy, dx in itertools.product(range(8), repeat=2):
+            if self.chessboard[dy][dx] is None:
+                continue
+            temp_piece = self.chessboard[dy][dx]
+            if temp_piece is piece:
+                continue
+            if not isinstance(temp_piece, type(piece)):
+                continue
+            if temp_piece.is_white != piece.is_white:
+                continue
+            if not self.gatekeeper(dx, dy, nx, ny, True):
+                continue
+            if x != dx and y != dy:
+                return 'abcdefgh'[x]
+            if y == dy:
+                return 'abcdefgh'[x]
+            if x == dx:
+                return '87654321'[y]
+        return ''
 
     def get_attacking(self) -> List[Tuple[int, int]]:
         attacking = []
