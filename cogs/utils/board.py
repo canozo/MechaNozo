@@ -71,9 +71,6 @@ class Board:
 
     def gatekeeper(self, x: int, y: int, nx: int, ny: int, review_mode: bool, promote_to: str=None) -> bool:
         legal = True
-        flag_ep = False
-        en_passant_x = -1
-        en_passant_y = -1
         piece = self.chessboard[y][x]
         destination = self.chessboard[ny][nx]
 
@@ -125,15 +122,6 @@ class Board:
             else:
                 promote_to = None
 
-            # get ready for a possible en passant on next turn
-            if not review_mode and legal and isinstance(piece, Pawn) and abs(y-ny) == 2:
-                flag_ep = True
-                en_passant_x = x
-                if self.white_turn:
-                    en_passant_y = y-1
-                elif not self.white_turn:
-                    en_passant_y = y+1
-
             # if the player is in check, see if he manages to get out of check
             if legal and self.is_checked:
                 attacking_pieces = self.get_attacking()
@@ -162,14 +150,6 @@ class Board:
 
         if not review_mode and legal:
             self.execute(x, y, nx, ny, promote_to)
-
-            if self.en_passant:
-                self.en_passant = False
-
-            if flag_ep:
-                self.en_passant_x = en_passant_x
-                self.en_passant_y = en_passant_y
-                self.en_passant = True
 
         return legal
 
@@ -262,6 +242,18 @@ class Board:
                 move_number = f'{self.move_count}.'
         else:
             move_number = ''
+
+        if self.en_passant:
+            self.en_passant = False
+
+        # get ready for a possible en passant on next turn
+        if isinstance(self.chessboard[ny][nx], Pawn) and abs(y - ny) == 2:
+            self.en_passant = True
+            self.en_passant_x = x
+            if self.white_turn:
+                self.en_passant_y = y - 1
+            elif not self.white_turn:
+                self.en_passant_y = y + 1
 
         self.white_turn = not self.white_turn
         self.chessboard[y][x] = None
