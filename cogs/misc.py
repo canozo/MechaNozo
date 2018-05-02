@@ -3,7 +3,6 @@ import basc_py4chan as py4chan
 import discord
 import random
 import math
-import os
 
 
 class Misc:
@@ -63,19 +62,6 @@ class Misc:
         """Get a number from 1 to 100."""
         num = math.ceil((1 - math.pow(random.random(), 0.26)) * 100)
         await ctx.send(f'{ctx.author.name} rolled `{num}`!')
-
-    @commands.command()
-    async def ping(self, ctx, times: int=1):
-        """Ping shenanigans.
-        Do NOT try this at home, it blocks the bot and it only works on windows."""
-        host = 'www.google.com'
-        if times != 1 and not await ctx.bot.is_owner(ctx.author):
-            await ctx.send('Only the bot owner can ping more than once!')
-        else:
-            message = await ctx.send(f'Pinging {host} {times} times...')
-            ping = os.popen(f'ping {host} -n {times}')
-            result = ping.readlines()
-            await message.edit(content=result[-1])
 
     @commands.command(name='4chan')
     async def fourchan(self, ctx, letter: str='jp'):
