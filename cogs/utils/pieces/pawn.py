@@ -1,10 +1,9 @@
 from .piece import Piece
 from PIL import Image
-from typing import List
 
 
 class Pawn(Piece):
-    def __init__(self, is_white: bool, has_moved: bool=False):
+    def __init__(self, is_white, has_moved=False):
         super(Pawn, self).__init__(is_white, has_moved)
         if self.is_white:
             self.img = Image.open('pictures/pawn-w.png')
@@ -17,7 +16,7 @@ class Pawn(Piece):
     def check_laser(self, chessboard, x, y, check_mode):
         return []
 
-    def can_move(self, x: int, y: int, new_x: int, new_y: int, piece_in_path: bool) -> bool:
+    def can_move(self, x, y, new_x, new_y, piece_in_path):
         dx = abs(x-new_x)
         dy = y-new_y
 
@@ -33,7 +32,7 @@ class Pawn(Piece):
 
         return False
 
-    def controlled(self, table: List[List[bool]], chessboard: List[List[Piece]], x: int, y: int) -> List[List[bool]]:
+    def controlled(self, table, chessboard, x, y):
         if (self.is_white and y == 0) or (not self.is_white and y == 7):
             return table
 

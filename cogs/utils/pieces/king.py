@@ -1,11 +1,10 @@
 from .piece import Piece
 from PIL import Image
-from typing import List
 import itertools
 
 
 class King(Piece):
-    def __init__(self, is_white: bool, has_moved: bool=False):
+    def __init__(self, is_white, has_moved=False):
         super(King, self).__init__(is_white, has_moved)
         if self.is_white:
             self.img = Image.open('pictures/king-w.png')
@@ -18,12 +17,14 @@ class King(Piece):
     def check_laser(self, chessboard, x, y, check_mode):
         return []
 
-    def can_move(self, x: int, y: int, new_x: int, new_y: int, piece_in_path: bool) -> bool:
+    def can_move(self, x, y, new_x, new_y, piece_in_path):
         dx = abs(x-new_x)
         dy = abs(y-new_y)
-        return (dx == dy == 1) or (dx == 0 and dy == 1) or (dx == 1 and dy == 0)
+        return (dx == dy == 1) \
+            or (dx == 0 and dy == 1) \
+            or (dx == 1 and dy == 0)
 
-    def controlled(self, table: List[List[bool]], chessboard: List[List[Piece]], x: int, y: int) -> List[List[bool]]:
+    def controlled(self, table, chessboard, x, y):
         for i, j in itertools.product(range(8), repeat=2):
             if self.can_move(x, y, j, i, False):
                 table[i][j] = True

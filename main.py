@@ -23,7 +23,7 @@ extensions = [
     'cogs.misc'
 ]
 
-bot_description = 'Simple bot mostly used for playing chess matches on discord.'
+bot_description = 'Discord bot used for playing chess matches on servers.'
 bot = commands.Bot(command_prefix=prefix, description=bot_description)
 
 
@@ -36,12 +36,16 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, exception):
-    ignore = (commands.CommandNotFound, commands.BadArgument, commands.UserInputError, commands.MissingRequiredArgument)
+    ignore = (commands.CommandNotFound,
+              commands.BadArgument,
+              commands.UserInputError,
+              commands.MissingRequiredArgument)
     if isinstance(exception, ignore):
         return
 
     print(f'Exception in command {ctx.command}', file=sys.stderr)
-    traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
+    traceback.print_exception(type(exception), exception,
+                              exception.__traceback__, file=sys.stderr)
     print('__________________', file=sys.stderr)
 
 

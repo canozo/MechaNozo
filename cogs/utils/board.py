@@ -1,5 +1,3 @@
-from typing import TypeVar, List, Tuple
-from .pieces.piece import Piece
 from .pieces.rook import Rook
 from .pieces.bishop import Bishop
 from .pieces.knight import Knight
@@ -8,8 +6,6 @@ from .pieces.king import King
 from .pieces.pawn import Pawn
 import itertools
 import copy
-
-T = TypeVar('T', Piece, None)
 
 
 class Board:
@@ -25,9 +21,9 @@ class Board:
         self.en_passant = False
         self.en_passant_x = -1
         self.en_passant_y = -1
-        self.white_controlled = None  # type: List[List[bool]]
-        self.black_controlled = None  # type: List[List[bool]]
-        self.chessboard = [[None for _ in range(8)] for _ in range(8)]  # type: List[List[T]]
+        self.white_controlled = None
+        self.black_controlled = None
+        self.chessboard = [[None for _ in range(8)] for _ in range(8)]
 
         # initial position
         self.chessboard[0][0] = Rook(False)
@@ -69,7 +65,7 @@ class Board:
         # iniial controlled squares
         self.update_controlled()
 
-    def gatekeeper(self, x: int, y: int, nx: int, ny: int, review_mode: bool, promote_to: str=None) -> bool:
+    def gatekeeper(self, x, y, nx, ny, review_mode, promote_to=None):
         legal = True
         piece = self.chessboard[y][x]
         destination = self.chessboard[ny][nx]
@@ -83,41 +79,49 @@ class Board:
                 legal = False
 
             # no friendly fire
-            if legal and destination is not None and self.white_turn == destination.is_white:
+            if legal and destination is not None \
+                    and self.white_turn == destination.is_white:
                 legal = False
 
             # check if player wants to castle
-            if legal and isinstance(piece, King) and not self.is_checked and abs(x-nx) == 2:
+            if legal and isinstance(piece, King) \
+                    and not self.is_checked and abs(x-nx) == 2:
                 legal = self.can_castle(x, y, nx, ny)
 
             # check if can do en passant
-            elif legal and self.en_passant and isinstance(piece, Pawn)\
+            elif legal and self.en_passant and isinstance(piece, Pawn) \
                     and nx == self.en_passant_x and ny == self.en_passant_y:
                 legal = piece.can_move(x, y, nx, ny, True)
 
             #  all normal moves
-            elif legal and not piece.can_move(x, y, nx, ny, destination is not None):
+            elif legal and not piece.can_move(
+                    x, y, nx, ny, destination is not None):
                 legal = False
 
             # check that there's no jumping pieces
-            if legal and not isinstance(piece, Knight) and not isinstance(piece, King):
+            if legal and not isinstance(piece, Knight) \
+                    and not isinstance(piece, King):
                 legal = not self.jumps(x, y, nx, ny)
 
             # check white king doesn't move to a controlled square
-            if legal and isinstance(piece, King) and self.white_turn and self.black_controlled[ny][nx]:
+            if legal and isinstance(piece, King) and self.white_turn \
+                    and self.black_controlled[ny][nx]:
                 legal = False
 
             # check black king doesn't move to a controlled square
-            elif legal and isinstance(piece, King) and not self.white_turn and self.white_controlled[ny][nx]:
+            elif legal and isinstance(piece, King) and not self.white_turn \
+                    and self.white_controlled[ny][nx]:
                 legal = False
 
             # check that we're not moving pinned pieces
-            if legal and not isinstance(piece, King) and self.check_laser(x, y, nx, ny):
+            if legal and not isinstance(piece, King) \
+                    and self.check_laser(x, y, nx, ny):
                 legal = False
 
             # check if the player can promote
             if legal and isinstance(piece, Pawn) \
-                    and ((self.white_turn and ny == 0) or (not self.white_turn and ny == 7)):
+                    and ((self.white_turn and ny == 0) or
+                         (not self.white_turn and ny == 7)):
                 legal = promote_to in ('queen', 'rook', 'bishop', 'knight')
             else:
                 promote_to = None
@@ -133,7 +137,8 @@ class Board:
                     elif not self.white_turn and self.white_controlled[ny][nx]:
                         legal = False
 
-                # if the king is being attacked by more than one piece, there's no way to block or take both of them
+                # if the king is being attacked by more than one piece
+                # there's no way to block or take both of them
                 elif len(attacking_pieces) > 1:
                     legal = False
 
@@ -153,7 +158,7 @@ class Board:
 
         return legal
 
-    def execute(self, x: int, y: int, nx: int, ny: int, promote_to: str) -> None:
+    def execute(self, x, y, nx, ny, promote_to):
         game_state = (copy.deepcopy(self.chessboard),
                       self.white_turn,
                       self.en_passant,
@@ -203,7 +208,7 @@ class Board:
                 self.chessboard[y][nx-2] = None
                 castle = 'O-O-O'
 
-        if self.en_passant and isinstance(self.chessboard[y][x], Pawn)\
+        if self.en_passant and isinstance(self.chessboard[y][x], Pawn) \
                 and ny == self.en_passant_y and nx == self.en_passant_x:
             pawn_pos = 'abcdefgh'[x]
             take = 'x'
@@ -276,11 +281,12 @@ class Board:
             status = ' { Draw by stalemate. } 1/2-1/2'
 
         if castle is None:
-            self.pgn += move_number + piece + details + pawn_pos + take + move + promotion + status
+            self.pgn += move_number + piece + details + pawn_pos \
+                        + take + move + promotion + status
         else:
             self.pgn += move_number + castle + status
 
-    def undo(self) -> None:
+    def undo(self):
         if len(self.history) > 0:
             self.chessboard,\
                 self.white_turn,\
@@ -293,11 +299,11 @@ class Board:
                 self.pgn = self.history.pop()
             self.update_controlled()
 
-    def draw(self) -> None:
+    def draw(self):
         self.result = '1/2-1/2'
         self.pgn += ' { A draw was agreed. } 1/2-1/2'
 
-    def surrender(self, player: bool) -> None:
+    def surrender(self, player):
         if player:
             self.result = '0-1'
             self.pgn += ' { White resigns. } 0-1'
@@ -305,7 +311,7 @@ class Board:
             self.result = '1-0'
             self.pgn += ' { Black resigns. } 1-0'
 
-    def get_details(self, x: int, y: int, nx: int, ny: int) -> str:
+    def get_details(self, x, y, nx, ny):
         piece = self.chessboard[y][x]
         if isinstance(piece, Pawn):
             return ''
@@ -329,25 +335,30 @@ class Board:
                 return '87654321'[y]
         return ''
 
-    def get_attacking(self) -> List[Tuple[int, int]]:
+    def get_attacking(self):
         attacking = []
         king_y = king_x = 0
 
         for i, j in itertools.product(range(8), repeat=2):
             piece = self.chessboard[i][j]
-            if piece is not None and isinstance(piece, King) and piece.is_white == self.white_turn:
+            if piece is not None and isinstance(piece, King) \
+                    and piece.is_white == self.white_turn:
                 king_x = j
                 king_y = i
+                break
 
         for i, j in itertools.product(range(8), repeat=2):
             piece = self.chessboard[i][j]
-            if piece is not None and piece.is_white != self.white_turn:
-                table = piece.controlled([[False for _ in range(8)] for _ in range(8)], self.chessboard, j, i)
+            if piece is None:
+                continue
+            if piece.is_white != self.white_turn:
+                table = [[False for _ in range(8)] for _ in range(8)]
+                table = piece.controlled(table, self.chessboard, j, i)
                 if table[king_y][king_x]:
                     attacking.append((i, j))
         return attacking
 
-    def can_castle(self, x: int, y: int, nx: int, ny: int) -> bool:
+    def can_castle(self, x, y, nx, ny):
         dx = nx - x
         dy = ny - y
 
@@ -367,7 +378,8 @@ class Board:
         if self.chessboard[y][rook_x] is None:
             return False
 
-        if self.chessboard[y][rook_x].has_moved or self.chessboard[y][x].has_moved:
+        if self.chessboard[y][rook_x].has_moved \
+                or self.chessboard[y][x].has_moved:
             return False
 
         if self.jumps(x, y, rook_x, ny):
@@ -377,20 +389,21 @@ class Board:
         while i != nx + increment:
             if self.chessboard[y][x].is_white and self.black_controlled[y][i]:
                 return False
-            elif not self.chessboard[y][x].is_white and self.white_controlled[y][i]:
+            elif not self.chessboard[y][x].is_white \
+                    and self.white_controlled[y][i]:
                 return False
             i += increment
 
         return True
 
-    def check_block(self, x: int, y: int) -> List[Tuple[int, int]]:
+    def check_block(self, x, y):
         laser = []
         piece = self.chessboard[y][x]
         if isinstance(piece, (Queen, Rook, Bishop)):
             laser = piece.check_laser(self.chessboard, x, y, True)
         return laser
 
-    def check_laser(self, x: int, y: int, nx: int, ny: int) -> bool:
+    def check_laser(self, x, y, nx, ny):
         # is there a pin and am I executing correctly
         for i, j in itertools.product(range(8), repeat=2):
             piece = self.chessboard[i][j]
@@ -412,7 +425,7 @@ class Board:
             return (ny, nx) not in laser
         return False
 
-    def jumps(self, x: int, y: int, nx: int, ny: int) -> bool:
+    def jumps(self, x, y, nx, ny):
         dx = abs(x-nx)
         dy = abs(y-ny)
 
@@ -464,35 +477,44 @@ class Board:
 
         return False
 
-    def update_controlled(self) -> None:
-        self.white_controlled = [[False for _ in range(8)] for _ in range(8)]
-        self.black_controlled = [[False for _ in range(8)] for _ in range(8)]
-        for i, j in itertools.product(range(8), repeat=2):
-            if self.chessboard[i][j] is not None and self.chessboard[i][j].is_white:
-                self.white_controlled = self.chessboard[i][j].controlled(self.white_controlled, self.chessboard, j, i)
-            elif self.chessboard[i][j] is not None and not self.chessboard[i][j].is_white:
-                self.black_controlled = self.chessboard[i][j].controlled(self.black_controlled, self.chessboard, j, i)
+    def update_controlled(self):
+        wtable = [[False for _ in range(8)] for _ in range(8)]
+        btable = [[False for _ in range(8)] for _ in range(8)]
 
-    def check(self) -> bool:
+        for i, j in itertools.product(range(8), repeat=2):
+            piece = self.chessboard[i][j]
+            if piece is None:
+                continue
+            if piece.is_white:
+                wtable = piece.controlled(wtable, self.chessboard, j, i)
+            else:
+                btable = piece.controlled(btable, self.chessboard, j, i)
+
+        self.white_controlled = wtable
+        self.black_controlled = btable
+
+    def check(self):
         king_y = king_x = 0
         for i, j in itertools.product(range(8), repeat=2):
             piece = self.chessboard[i][j]
-            if piece is not None and isinstance(piece, King) and piece.is_white == self.white_turn:
+            if piece is not None and isinstance(piece, King) \
+                    and piece.is_white == self.white_turn:
                 king_x = j
                 king_y = i
+                break
 
         if self.white_turn:
             return self.black_controlled[king_y][king_x]
         else:
             return self.white_controlled[king_y][king_x]
 
-    def has_legal_move(self) -> bool:
+    def has_legal_move(self):
         for i, j, k, l in itertools.product(range(8), repeat=4):
             if self.gatekeeper(j, i, l, k, True, 'queen'):
                 return True
         return False
 
-    def get_legal_moves(self) -> List[Tuple[int, int, int, int]]:
+    def get_legal_moves(self):
         moves = []
         for i, j, k, l in itertools.product(range(8), repeat=4):
             if self.gatekeeper(j, i, l, k, True, 'queen'):

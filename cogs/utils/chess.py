@@ -1,14 +1,13 @@
-from typing import Tuple
 from PIL import Image
 import itertools
 import os
-import time
+from time import strftime
 from .board import Board
 
 
 class Chess:
-    def __init__(self, white: int, black: int, game_id: int, guild_id: int, guild_name: str, white_user: str,
-                 black_user: str, white_elo: int, black_elo: int):
+    def __init__(self, white, black, game_id, guild_id, guild_name, white_user,
+                 black_user, white_elo, black_elo):
         self.white = white
         self.black = black
         self.game_id = game_id
@@ -18,7 +17,7 @@ class Chess:
         self.black_user = black_user
         self.white_elo = white_elo
         self.black_elo = black_elo
-        self.date = time.strftime('%Y.%m.%d')
+        self.date = strftime('%Y.%m.%d')
         self.board = Board()
         self.white_turn = True
         self.white_undo = False
@@ -35,7 +34,7 @@ class Chess:
         self.board_normal_img = Image.open('pictures/board-normal.png')
         self.board_flipped_img = Image.open('pictures/board-flipped.png')
 
-    def get_images(self) -> Tuple[str, str]:
+    def get_images(self):
         normal_board = 'temp/result-normal.png'
         flipped_board = 'temp/result-flipped.png'
         result_normal = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
@@ -47,8 +46,10 @@ class Chess:
         for y, x in itertools.product(range(8), repeat=2):
             if chessboard[y][x] is not None:
                 piece_img = chessboard[y][x].img
-                result_normal.paste(piece_img, (x * 64, y * 64), mask=piece_img)
-                result_flipped.paste(piece_img, (448 - x * 64, 448 - y * 64), mask=piece_img)
+                result_normal.paste(
+                    piece_img, (x * 64, y * 64), mask=piece_img)
+                result_flipped.paste(
+                    piece_img, (448 - x * 64, 448 - y * 64), mask=piece_img)
 
         if not os.path.isdir('temp/'):
             os.makedirs('temp/')
@@ -57,13 +58,18 @@ class Chess:
         result_flipped.save(flipped_board)
         return normal_board, flipped_board
 
-    def move(self, player_id: int, mv_from: str, mv_into: str, promote_to: str=None) -> int:
-        if (self.white_turn and player_id != self.white) or (not self.white_turn and player_id != self.black):
+    def move(self, player_id, mv_from, mv_into, promote_to=None):
+        if (self.white_turn and player_id != self.white) or \
+                (not self.white_turn and player_id != self.black):
             # not the players turn
             return 1
 
-        elif len(mv_from) != 2 or len(mv_into) != 2 or mv_from[0] not in 'abcdefgh' or mv_from[1] not in '12345678'\
-                or mv_into[0] not in 'abcdefgh' or mv_into[1] not in '12345678':
+        elif len(mv_from) != 2 \
+                or len(mv_into) != 2 \
+                or mv_from[0] not in 'abcdefgh' \
+                or mv_from[1] not in '12345678' \
+                or mv_into[0] not in 'abcdefgh' \
+                or mv_into[1] not in '12345678':
             # wrote the move incorrectly
             return 2
 
@@ -73,7 +79,12 @@ class Chess:
             self.new_x = 'abcdefgh'.find(mv_into[0])
             self.new_y = '87654321'.find(mv_into[1])
 
-            if not self.board.gatekeeper(self.old_x, self.old_y, self.new_x, self.new_y, False, promote_to):
+            if not self.board.gatekeeper(self.old_x,
+                                         self.old_y,
+                                         self.new_x,
+                                         self.new_y,
+                                         False,
+                                         promote_to):
                 # illegal move
                 return 3
 
@@ -92,11 +103,11 @@ class Chess:
                     self.gameover = True
                 return 0
 
-    def status(self) -> Tuple[bool, bool]:
+    def status(self):
         # returns the current status of the game (is game over, is stalemate)
         return self.gameover, self.gameover and not self.board.is_checked
 
-    def surrender(self, player_id: int) -> int:
+    def surrender(self, player_id):
         if player_id == self.white:
             self.board.surrender(True)
             self.gameover = True
@@ -107,7 +118,7 @@ class Chess:
             winner = self.white
         return winner
 
-    def draw(self, player_id: int) -> bool:
+    def draw(self, player_id):
         if player_id == self.white:
             self.white_draw = True
         elif player_id == self.black:
@@ -121,7 +132,7 @@ class Chess:
         else:
             return False
 
-    def takeback(self, player_id: int) -> bool:
+    def takeback(self, player_id):
         if player_id == self.white:
             self.white_undo = True
         elif player_id == self.black:
@@ -135,7 +146,7 @@ class Chess:
         else:
             return False
 
-    def get_pgn(self) -> str:
+    def get_pgn(self):
         tags = '[Event "Discord Chess game"]\n'\
                f'[Site "{self.guild_name}"]\n'\
                f'[Date "{self.date}"]\n'\

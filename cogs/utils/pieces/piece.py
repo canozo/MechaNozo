@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
 
 
 class Piece(ABC):
-    def __init__(self, is_white: bool, has_moved: bool):
+    def __init__(self, is_white, has_moved):
         self.is_white = is_white
         self.has_moved = has_moved
         self.img = None
+        self.diagonal = (-1, -1, 1, 1, -1)
+        self.straight = (-1, 0, 1, 0, -1)
 
-    def get_laser(self, movements: Tuple[int, ...], chessboard: List[List['Piece']],
-                  x: int, y: int, check_mode: bool) -> List[Tuple[int, int]]:
+    def get_laser(self, movements, chessboard, x, y, check_mode):
         from .king import King
         for i in range(4):
             piece_count = 0
@@ -38,8 +38,7 @@ class Piece(ABC):
         return []
 
     @staticmethod
-    def possible_moves(movements: Tuple[int, ...], table: List[List[bool]],
-                       chessboard: List[List['Piece']], x: int, y: int) -> List[List[bool]]:
+    def possible_moves(movements, table, chessboard, x, y):
         from .king import King
         for i in range(4):
             exit_loop = False

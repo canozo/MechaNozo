@@ -13,16 +13,21 @@ class Misc:
 
     @commands.command(name='help')
     async def _help(self, ctx, command: str = None):
-        """Show all of the available commands and how to use specific commands."""
-        embed = discord.Embed(title=f'{self.bot.user.name} help', type='rich', colour=discord.Colour.magenta())
+        """Show all of the available commands with help."""
+        embed = discord.Embed(title=f'{self.bot.user.name} help',
+                              type='rich',
+                              colour=discord.Colour.magenta())
         if command is None:
             embed.description = f'List of available commands, type ' \
-                                f'`{self.bot.command_prefix}help command` to get more info!'
+                                f'`{self.bot.command_prefix}help command`' \
+                                f' to get more info!'
             for cog, cmd_dict in self.help_dict.items():
                 value = ''
                 for cmd in cmd_dict:
                     value += f'`{cmd}` '
-                embed.add_field(name=f'{cog} commands', value=value, inline=False)
+                embed.add_field(name=f'{cog} commands',
+                                value=value,
+                                inline=False)
 
         else:
             found = False
@@ -37,14 +42,19 @@ class Misc:
                     for var, param in params.items():
                         if var not in ('self', 'ctx'):
                             usage.append(var)
-                            embed.add_field(name=f'Parameter: {var}', value=f'`{param}`', inline=False)
+                            embed.add_field(name=f'Parameter: {var}',
+                                            value=f'`{param}`',
+                                            inline=False)
 
             if found:
                 embed.title = f'Command: {command}'
                 embed.description = f'{help_msg}'
-                embed.add_field(name='Usage', value='`' + ' '.join(usage) + '`', inline=False)
+                embed.add_field(name='Usage',
+                                value=f'`{" ".join(usage)}`',
+                                inline=False)
             else:
-                embed.description = f'There is no help for command `{command}`! Maybe it doesn\'t exist?'
+                embed.description = f'There is no help for command ' \
+                                    f'`{command}`! Maybe it doesn\'t exist?'
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
@@ -73,7 +83,8 @@ class Misc:
             await ctx.send(f'Board `/{letter}/` doesn\'t exist!')
         else:
             if not sfw and not ctx.channel.is_nsfw():
-                await ctx.send(f'Board `/{letter}/` is nsfw and this channel is sfw!')
+                await ctx.send(
+                    f'Board `/{letter}/` is nsfw and this channel is sfw!')
             else:
                 thread_id = random.choice(board.get_all_thread_ids())
                 thread = board.get_thread(thread_id)
