@@ -26,4 +26,3 @@ class Knight(Piece):
         for i, j in itertools.product(range(8), repeat=2):
             if self.can_move(x, y, j, i, False):
                 table[i][j] = True
-        return table

@@ -14,7 +14,6 @@ class Queen(Piece):
         return Queen(self.is_white, self.has_moved)
 
     def check_laser(self, chessboard, x, y, check_mode=False):
-
         laser = self.get_laser(self.straight, chessboard, x, y, check_mode)
         if len(laser) > 0:
             return laser
@@ -27,5 +26,5 @@ class Queen(Piece):
         return dx == dy or (dx == 0 and dy != 0) or (dx != 0 and dy == 0)
 
     def controlled(self, table, chessboard, x, y):
-        table = self.possible_moves(self.straight, table, chessboard, x, y)
-        return self.possible_moves(self.diagonal, table, chessboard, x, y)
+        self.possible_moves(self.straight, table, chessboard, x, y)
+        self.possible_moves(self.diagonal, table, chessboard, x, y)

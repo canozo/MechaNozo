@@ -45,5 +45,3 @@ class Pawn(Piece):
             table[dy][x+1] = True
         if x > 0:
             table[dy][x-1] = True
-
-        return table

@@ -24,7 +24,8 @@ class Piece(ABC):
                 if piece is not None:
                     if piece.is_white == self.is_white:
                         break
-                    elif check_mode and isinstance(piece, King) and piece_count == 0:
+                    elif check_mode and isinstance(piece, King) \
+                            and piece_count == 0:
                         return laser
                     elif check_mode:
                         break
@@ -53,7 +54,6 @@ class Piece(ABC):
                 table[count_y][count_x] = True
                 count_x += sum_x
                 count_y += sum_y
-        return table
 
     @abstractmethod
     def check_laser(self, chessboard, x, y, check_mode):

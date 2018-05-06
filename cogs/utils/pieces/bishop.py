@@ -20,4 +20,4 @@ class Bishop(Piece):
         return abs(x-new_x) == abs(y-new_y)
 
     def controlled(self, table, chessboard, x, y):
-        return self.possible_moves(self.diagonal, table, chessboard, x, y)
+        self.possible_moves(self.diagonal, table, chessboard, x, y)

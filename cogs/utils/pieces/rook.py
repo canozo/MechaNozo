@@ -22,4 +22,4 @@ class Rook(Piece):
         return (dx == 0 and dy != 0) or (dx != 0 and dy == 0)
 
     def controlled(self, table, chessboard, x, y):
-        return self.possible_moves(self.straight, table, chessboard, x, y)
+        self.possible_moves(self.straight, table, chessboard, x, y)
